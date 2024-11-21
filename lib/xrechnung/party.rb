@@ -6,6 +6,11 @@ module Xrechnung
     #   @return [String]
     member :name, type: String
 
+
+    # @!attribute endpoint
+    #   @return [String]
+    member :endpoint, type: Xrechnung::Id, optional: true
+
     # @!attribute postal_address
     #   @return [Xrechnung::PostalAddress]
     member :postal_address, type: Xrechnung::PostalAddress
@@ -37,6 +42,9 @@ module Xrechnung
     def to_xml(xml)
       if nested
         xml.cac :Party do
+          unless endpoint.nil?
+            xml.cbc :EndpointID, endpoint.id, schemeID: endpoint.scheme_id
+          end
           party_body(xml)
         end
       else
@@ -56,6 +64,7 @@ module Xrechnung
           end
         end
       end
+
       party_identification&.to_xml(xml)
       postal_address&.to_xml(xml)
       party_tax_scheme&.to_xml(xml)
