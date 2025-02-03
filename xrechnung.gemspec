@@ -23,6 +23,8 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   spec.add_dependency "builder", "~> 3.2"
+  spec.add_dependency "bigdecimal"
+  spec.add_dependency "activesupport"
 
   spec.add_development_dependency "httparty"
   spec.add_development_dependency "rubyzip", "~> 2.0"
