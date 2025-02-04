@@ -1,5 +1,6 @@
 require "xrechnung/version"
 require "date"
+require "active_support/core_ext/object/blank"
 require "xrechnung/currency"
 require "xrechnung/endpoint"
 require "xrechnung/quantity"
@@ -316,6 +317,12 @@ module Xrechnung
           end
         end
 
+        unless members[:billing_reference][:optional] && billing_reference.nil?
+          xml.cac :BillingReference do
+            billing_reference&.to_xml(xml)
+          end
+        end
+
         unless contract_document_reference_id.blank?
           xml.cac :ContractDocumentReference do
             xml.cbc :ID, contract_document_reference_id
@@ -342,6 +349,12 @@ module Xrechnung
 
         xml.cac :AccountingCustomerParty do
           accounting_customer_party&.to_xml(xml)
+        end
+
+        unless members[:tax_representative_party][:optional] && tax_representative_party.nil?
+          xml.cac :TaxRepresentativeParty do
+            tax_representative_party&.to_xml(xml)
+          end
         end
 
         unless delivery.blank?
@@ -379,20 +392,6 @@ module Xrechnung
         # !!!
         # don't add any other elements after invoice_lines, it looks like the validator doesn't like that
         # !!!
-
-        #unless members[:billing_reference][:optional] && billing_reference.nil?
-          #xml.cac :BillingReference do
-            #billing_reference&.to_xml(xml)
-          #end
-        #end
-
-
-        #unless members[:tax_representative_party][:optional] && tax_representative_party.nil?
-          #xml.cac :TaxRepresentativeParty do
-            #tax_representative_party&.to_xml(xml)
-          #end
-        #end
-
       end
       target
     end
