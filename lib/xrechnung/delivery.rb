@@ -10,6 +10,10 @@ module Xrechnung
     #   @return [String]
     member :party_name, type: String
 
+    # @!attribute street_name
+    #   @return [String]
+    member :street_name, type: String
+
     # @!attribute city_name
     #   @return [String]
     member :city_name, type: String
@@ -18,6 +22,10 @@ module Xrechnung
     #   @return [String]
     member :postal_zone, type: String
 
+    # @!attribute country_id
+    #   @return [String]
+    member :country_id, type: String
+
     # noinspection RubyResolve
     def to_xml(xml)
       xml.cac :Delivery do
@@ -25,10 +33,11 @@ module Xrechnung
         if city_name.present? || postal_zone.present?
           xml.cac :DeliveryLocation do
             xml.cac :Address do
+              xml.cbc :StreetName, street_name unless street_name.nil?
               xml.cbc :CityName, city_name unless city_name.nil?
               xml.cbc :PostalZone, postal_zone unless postal_zone.nil?
               xml.cac :Country do
-                xml.cbc :IdentificationCode, "DE"
+                xml.cbc :IdentificationCode, country_id
               end
             end
           end

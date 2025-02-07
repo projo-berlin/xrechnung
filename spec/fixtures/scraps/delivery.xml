@@ -1,0 +1,12 @@
+<cac:Delivery>
+  <cac:DeliveryLocation>
+    <cac:Address>
+      <cbc:StreetName>Beispielgasse 17</cbc:StreetName>
+      <cbc:CityName>Baustadt</cbc:CityName>
+      <cbc:PostalZone>12345</cbc:PostalZone>
+      <cac:Country>
+        <cbc:IdentificationCode>DE</cbc:IdentificationCode>
+      </cac:Country>
+    </cac:Address>
+  </cac:DeliveryLocation>
+</cac:Delivery>
