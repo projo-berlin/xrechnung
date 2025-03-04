@@ -16,10 +16,12 @@ module Xrechnung
 
     # noinspection RubyResolve
     def to_xml(xml)
-      xml.cac :Contact do
-        xml.cbc :Name, name
-        xml.cbc :Telephone, telephone
-        xml.cbc :ElectronicMail, electronic_mail
+      unless name.blank? && telephone.blank? && electronic_mail.blank?
+        xml.cac :Contact do
+          xml.cbc :Name, name if name.present?
+          xml.cbc :Telephone, telephone if telephone.present?
+          xml.cbc :ElectronicMail, electronic_mail if electronic_mail.present?
+        end
       end
     end
   end
