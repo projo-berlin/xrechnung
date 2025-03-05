@@ -310,7 +310,7 @@ module Xrechnung
 
         xml.cbc :TaxPointDate, tax_point_date if tax_point_date
         xml.cbc :DocumentCurrencyCode, document_currency_code
-        xml.cbc :TaxCurrencyCode, tax_currency_code if tax_currency_code
+        xml.cbc :TaxCurrencyCode, tax_currency_code if tax_currency_code != document_currency_code
         xml.cbc :BuyerReference, buyer_reference
 
         unless invoice_start_date.blank? && invoice_end_date.blank?
