@@ -311,7 +311,7 @@ module Xrechnung
         xml.cbc :TaxPointDate, tax_point_date if tax_point_date
         xml.cbc :DocumentCurrencyCode, document_currency_code
         xml.cbc :TaxCurrencyCode, tax_currency_code if tax_currency_code != document_currency_code
-        xml.cbc :BuyerReference, buyer_reference
+        xml.cbc :BuyerReference, buyer_reference if buyer_reference.present?
 
         unless invoice_start_date.blank? && invoice_end_date.blank?
           xml.cac :InvoicePeriod do
@@ -320,10 +320,12 @@ module Xrechnung
           end
         end
 
-        xml.cac :OrderReference do
-          xml.cbc :ID, purchase_order_reference
-          unless members[:sales_order_reference][:optional] && sales_order_reference.blank?
-            xml.cbc :SalesOrderID, sales_order_reference
+        unless purchase_order_reference.blank?
+          xml.cac :OrderReference do
+            xml.cbc :ID, purchase_order_reference
+            unless members[:sales_order_reference][:optional] && sales_order_reference.blank?
+              xml.cbc :SalesOrderID, sales_order_reference
+            end
           end
         end
 
