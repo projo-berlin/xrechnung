@@ -25,7 +25,7 @@ module Xrechnung
     # noinspection RubyResolve
     def to_xml(xml)
       xml.cac :Item do
-        xml.cbc :Description, description
+        xml.cbc :Description, description if description.present?
         xml.cbc :Name, name
         unless standard_item_identification_id.nil?
           xml.cac :StandardItemIdentification do
