@@ -26,8 +26,10 @@ module Xrechnung
       xml.cac :PayeeFinancialAccount do
         xml.cbc :ID, id
         xml.cbc :Name, name
-        xml.cac :FinancialInstitutionBranch do
-          xml.cbc :ID, financial_institution_branch_id
+        if financial_institution_branch_id.present?
+          xml.cac :FinancialInstitutionBranch do
+            xml.cbc :ID, financial_institution_branch_id
+          end
         end
       end
     end

@@ -29,11 +29,11 @@ module Xrechnung
     # noinspection RubyResolve
     def to_xml(xml)
       xml.cac :PostalAddress do
-        xml.cbc :StreetName, street_name if street_name
-        xml.cbc :AdditionalStreetName, additional_street_name if additional_street_name
-        xml.cbc :CityName, city_name if city_name
-        xml.cbc :PostalZone, postal_zone if postal_zone
-        xml.cbc :CountrySubentity, country_subentity if country_subentity
+        xml.cbc :StreetName, street_name if street_name.present?
+        xml.cbc :AdditionalStreetName, additional_street_name if additional_street_name.present?
+        xml.cbc :CityName, city_name
+        xml.cbc :PostalZone, postal_zone
+        xml.cbc :CountrySubentity, country_subentity if country_subentity.present?
 
         xml.cac :Country do
           xml.cbc :IdentificationCode, country_id

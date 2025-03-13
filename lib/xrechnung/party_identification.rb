@@ -8,6 +8,8 @@ module Xrechnung
 
     # noinspection RubyResolve
     def to_xml(xml)
+      return "" if id.blank?
+
       xml.cac :PartyIdentification do
         xml.cbc :ID, id
       end

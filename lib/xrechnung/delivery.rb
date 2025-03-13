@@ -30,12 +30,12 @@ module Xrechnung
     def to_xml(xml)
       xml.cac :Delivery do
         xml.cbc :ActualDeliveryDate, actual_delivery_date unless actual_delivery_date.nil?
-        if city_name.present? || postal_zone.present?
+        if city_name.present? && postal_zone.present? && country_id.present?
           xml.cac :DeliveryLocation do
             xml.cac :Address do
-              xml.cbc :StreetName, street_name unless street_name.nil?
-              xml.cbc :CityName, city_name unless city_name.nil?
-              xml.cbc :PostalZone, postal_zone unless postal_zone.nil?
+              xml.cbc :StreetName, street_name if street_name.present?
+              xml.cbc :CityName, city_name
+              xml.cbc :PostalZone, postal_zone
               xml.cac :Country do
                 xml.cbc :IdentificationCode, country_id
               end

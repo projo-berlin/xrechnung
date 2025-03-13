@@ -12,6 +12,8 @@ module Xrechnung
 
     # noinspection RubyResolve
     def to_xml(xml)
+      return "" if company_id.blank? || tax_scheme_id.blank?
+
       xml.cac :PartyTaxScheme do
         xml.cbc :CompanyID, company_id
         xml.cac :TaxScheme do

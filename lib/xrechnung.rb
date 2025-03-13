@@ -33,6 +33,15 @@ module Xrechnung
   class Document
     include MemberContainer
 
+    # ProfileID BT-23
+    #
+    # Identifiziert den Kontext des Geschäftsprozesses, in dem die Transaktion erfolgt.
+    # Er ermöglicht es dem Erwerber, die Rechnung in angemessener Weise zu verarbeiten.
+    #
+    # @!attribute profile_id
+    #  @return [String]
+    member :profile_id, type: String, default: "urn:fdc:peppol.eu:2017:poacc:billing:01:1.0"
+
     # Invoice number BT-1
     #
     # Eine eindeutige Kennung der Rechnung, die diese im System des Verkäufers identifiziert.
@@ -276,7 +285,7 @@ module Xrechnung
 # IMPORTANT!
 # !!! The order of the xml.cbc's is absolutly important for the xsl schema validator !!!
 # so don't just add new elements at the end, the final element needs to be the invoice lines
-############################################################################################# 
+#############################################################################################
 
     def to_xml(indent: 2, target: "")
       xml = Builder::XmlMarkup.new(indent: indent, target: target)
@@ -288,7 +297,8 @@ module Xrechnung
         "xmlns:cbc"          => "urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2",
         "xmlns:xsi"          => "http://www.w3.org/2001/XMLSchema-instance",
         "xsi:schemaLocation" => "urn:oasis:names:specification:ubl:schema:xsd:Invoice-2 http://docs.oasis-open.org/ubl/os-UBL-2.1/xsd/maindoc/UBL-Invoice-2.1.xsd" do
-        xml.cbc :CustomizationID, "urn:cen.eu:en16931:2017#compliant#urn:xoev-de:kosit:standard:xrechnung_2.2"
+        xml.cbc :CustomizationID, "urn:cen.eu:en16931:2017#compliant#urn:xeinkauf.de:kosit:xrechnung_3.0#conformant#urn:xeinkauf.de:kosit:extension:xrechnung_3.0"
+        xml.cbc :ProfileID, profile_id
         xml.cbc :ID, id
         xml.cbc :IssueDate, issue_date
         xml.cbc :DueDate, due_date
@@ -300,8 +310,8 @@ module Xrechnung
 
         xml.cbc :TaxPointDate, tax_point_date if tax_point_date
         xml.cbc :DocumentCurrencyCode, document_currency_code
-        xml.cbc :TaxCurrencyCode, tax_currency_code if tax_currency_code
-        xml.cbc :BuyerReference, buyer_reference
+        xml.cbc :TaxCurrencyCode, tax_currency_code if tax_currency_code != document_currency_code
+        xml.cbc :BuyerReference, buyer_reference if buyer_reference.present?
 
         unless invoice_start_date.blank? && invoice_end_date.blank?
           xml.cac :InvoicePeriod do
@@ -310,10 +320,12 @@ module Xrechnung
           end
         end
 
-        xml.cac :OrderReference do
-          xml.cbc :ID, purchase_order_reference
-          unless members[:sales_order_reference][:optional] && sales_order_reference.blank?
-            xml.cbc :SalesOrderID, sales_order_reference
+        unless purchase_order_reference.blank?
+          xml.cac :OrderReference do
+            xml.cbc :ID, purchase_order_reference
+            unless members[:sales_order_reference][:optional] && sales_order_reference.blank?
+              xml.cbc :SalesOrderID, sales_order_reference
+            end
           end
         end
 

@@ -16,6 +16,10 @@ module Xrechnung
     #   @return [Integer]
     member :payment_means_code, type: Integer
 
+    # @!attribute payment_means_name
+    #  @return [String]
+    member :payment_means_name, type: String, optional: true
+
     # @!attribute instruction_note
     #   @return [String]
     member :instruction_note, type: String, optional: true
@@ -30,7 +34,8 @@ module Xrechnung
 
     # noinspection RubyResolve
     def to_xml(xml)
-      xml.cbc :PaymentMeansCode, payment_means_code
+      code_options = payment_means_name.present? ? { name: payment_means_name } : {}
+      xml.cbc :PaymentMeansCode, payment_means_code, code_options
       xml.cbc :InstructionNote, instruction_note if instruction_note
       xml.cbc :PaymentID, payment_id if payment_id
       payee_financial_account&.to_xml(xml)

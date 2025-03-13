@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    xrechnung (0.1.29)
+    xrechnung (0.2.0)
       activesupport
       bigdecimal
       builder (~> 3.2)

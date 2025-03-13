@@ -67,7 +67,7 @@ module Xrechnung
 
       party_identification&.to_xml(xml)
       postal_address&.to_xml(xml)
-      party_tax_scheme&.to_xml(xml)
+      party_tax_scheme&.to_xml(xml) if party_tax_scheme.present?
       party_legal_entity&.to_xml(xml)
       contact&.to_xml(xml)
     end
