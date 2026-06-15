@@ -51,6 +51,12 @@ module Xrechnung
 
       def exchanged_document_context(xml)
         xml.rsm :ExchangedDocumentContext do
+          # BT-23 Business process: the document's profile_id (PEPPOL billing process).
+          if @doc.profile_id.present?
+            xml.ram :BusinessProcessSpecifiedDocumentContextParameter do
+              xml.ram :ID, @doc.profile_id
+            end
+          end
           xml.ram :GuidelineSpecifiedDocumentContextParameter do
             xml.ram :ID, @guideline_id
           end

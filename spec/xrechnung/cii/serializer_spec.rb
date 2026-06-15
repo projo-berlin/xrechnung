@@ -95,6 +95,11 @@ RSpec.describe Xrechnung::Cii::Serializer do
     expect(xml).to include("<ram:ID>#{described_class::GUIDELINE_ID}</ram:ID>")
   end
 
+  it "declares the business process (BT-23) from the document profile_id" do
+    expect(xml).to include("<ram:BusinessProcessSpecifiedDocumentContextParameter>")
+    expect(xml).to include("<ram:ID>#{document.profile_id}</ram:ID>")
+  end
+
   it "serializes the document header (BT-1, BT-3, BT-2)" do
     expect(xml).to include("<ram:ID>RE-2026-0042</ram:ID>")
     expect(xml).to include("<ram:TypeCode>380</ram:TypeCode>")
