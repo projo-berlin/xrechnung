@@ -25,6 +25,7 @@ require "xrechnung/allowance_charge"
 require "xrechnung/price"
 require "xrechnung/invoice_line"
 require "xrechnung/invoice_document_reference"
+require "xrechnung/cii/serializer"
 require "builder"
 
 module Xrechnung
