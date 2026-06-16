@@ -1,4 +1,5 @@
 require "builder"
+require "base64"
 
 module Xrechnung
   module Cii
@@ -29,9 +30,15 @@ module Xrechnung
       }.freeze
 
       # @param document [Xrechnung::Document]
-      def initialize(document, guideline_id: GUIDELINE_ID)
+      # @param attachments [Array<Hash>] supporting documents (BG-24) to declare and
+      #   embed inline, each { filename:, name:, mime:, content: } where content is the
+      #   raw bytes. These also need to be embedded in the carrying PDF/A-3 as
+      #   Associated Files with the same filename — ZUGFeRD viewers list attachments
+      #   from these AdditionalReferencedDocument entries, not from PDF-level files.
+      def initialize(document, guideline_id: GUIDELINE_ID, attachments: [])
         @doc = document
         @guideline_id = guideline_id
+        @attachments = attachments
       end
 
       def to_xml(indent: 2, target: "")
@@ -133,6 +140,19 @@ module Xrechnung
               xml.ram :IssuerAssignedID, @doc.contract_document_reference_id
             end
           end
+          @attachments.each { |attachment| additional_referenced_document(xml, attachment) }
+        end
+      end
+
+      # BG-24 ADDITIONAL SUPPORTING DOCUMENTS — the supporting file declared in the
+      # invoice data with its binary inline (base64). TypeCode 916 = related document.
+      def additional_referenced_document(xml, attachment)
+        xml.ram :AdditionalReferencedDocument do
+          xml.ram :IssuerAssignedID, attachment[:filename]
+          xml.ram :TypeCode, "916"
+          xml.ram :Name, attachment[:name].presence || attachment[:filename]
+          xml.ram(:AttachmentBinaryObject, Base64.strict_encode64(attachment[:content]),
+                  mimeCode: attachment[:mime], filename: attachment[:filename])
         end
       end
 

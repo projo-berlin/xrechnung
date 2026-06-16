@@ -124,4 +124,22 @@ RSpec.describe Xrechnung::Cii::Serializer do
     expect(xml).to include("<ram:IBANID>DE12500105170648489890</ram:IBANID>")
     expect(xml).to include("<ram:BICID>INGDDEFFXXX</ram:BICID>")
   end
+
+  context "with supporting documents (BG-24)" do
+    subject(:xml) do
+      described_class.new(
+        document,
+        attachments: [{ filename: "anhang-1.pdf", name: "Leistungsnachweis", mime: "application/pdf", content: "%PDF-1.4 stub" }]
+      ).to_xml
+    end
+
+    it "declares each attachment as an AdditionalReferencedDocument with its base64 binary" do
+      expect(xml).to include("<ram:AdditionalReferencedDocument>")
+      expect(xml).to include("<ram:IssuerAssignedID>anhang-1.pdf</ram:IssuerAssignedID>")
+      expect(xml).to include("<ram:TypeCode>916</ram:TypeCode>")
+      expect(xml).to include("<ram:Name>Leistungsnachweis</ram:Name>")
+      expect(xml).to include(%(<ram:AttachmentBinaryObject mimeCode="application/pdf" filename="anhang-1.pdf">))
+      expect(xml).to include(Base64.strict_encode64("%PDF-1.4 stub"))
+    end
+  end
 end
