@@ -251,6 +251,9 @@ module Xrechnung
             xml.ram :TaxTotalAmount, tax_total.tax_amount.value_to_s, currencyID: tax_total.tax_amount.currency_id
           end
           xml.ram :GrandTotalAmount, total.tax_inclusive_amount&.value_to_s
+          # BT-113, optional. Must precede DuePayableAmount in the CII sequence, and is
+          # required whenever BT-115 < BT-112, or BR-CO-16 fails.
+          xml.ram :TotalPrepaidAmount, total.prepaid_amount.value_to_s if total.prepaid_amount
           xml.ram :DuePayableAmount, total.payable_amount&.value_to_s
         end
       end
