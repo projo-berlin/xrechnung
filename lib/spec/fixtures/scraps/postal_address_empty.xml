@@ -1,0 +1,7 @@
+<cac:PostalAddress>
+  <cbc:CityName/>
+  <cbc:PostalZone/>
+  <cac:Country>
+    <cbc:IdentificationCode/>
+  </cac:Country>
+</cac:PostalAddress>
