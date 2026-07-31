@@ -120,6 +120,25 @@ RSpec.describe Xrechnung::Cii::Serializer do
     expect(xml).to include("<ram:DuePayableAmount>1190.00</ram:DuePayableAmount>")
   end
 
+  it "omits TotalPrepaidAmount when the document has no prepaid amount" do
+    expect(xml).not_to include("<ram:TotalPrepaidAmount>")
+  end
+
+  context "with a prepaid amount (BT-113)" do
+    before do
+      document.legal_monetary_total = Xrechnung::LegalMonetaryTotal.new(
+        line_extension_amount: 1000, tax_exclusive_amount: 1000, tax_inclusive_amount: 1190,
+        prepaid_amount: 59.5, payable_amount: 1130.5
+      )
+    end
+
+    it "serializes it between GrandTotalAmount and DuePayableAmount" do
+      expect(xml).to match(
+        %r{<ram:GrandTotalAmount>1190\.00</ram:GrandTotalAmount>\s*<ram:TotalPrepaidAmount>59\.50</ram:TotalPrepaidAmount>\s*<ram:DuePayableAmount>1130\.50</ram:DuePayableAmount>}
+      )
+    end
+  end
+
   it "maps the IBAN/BIC payment means" do
     expect(xml).to include("<ram:IBANID>DE12500105170648489890</ram:IBANID>")
     expect(xml).to include("<ram:BICID>INGDDEFFXXX</ram:BICID>")
