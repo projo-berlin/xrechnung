@@ -98,6 +98,9 @@ module Xrechnung
     #   @return [Integer]
     member :invoice_type_code, type: Integer, default: 380
 
+    # The UNTDID 1001 codes BR-CL-01 only accepts in a UBL CreditNote, not in a UBL Invoice.
+    CREDIT_NOTE_TYPE_CODES = [81, 83, 261, 262, 296, 308, 381, 396, 420, 458, 532].freeze
+
     # Invoice currency code BT-5
     #
     # Die Währung, in der alle Rechnungsbeträge angegeben werden, ausgenommen ist der Umsatzsteuer-
@@ -288,28 +291,47 @@ module Xrechnung
 # so don't just add new elements at the end, the final element needs to be the invoice lines
 #############################################################################################
 
+    # A credit note type code (e.g. 381) is serialized as a UBL CreditNote instead of an Invoice.
+    def credit_note?
+      CREDIT_NOTE_TYPE_CODES.include?(invoice_type_code)
+    end
+
     def to_xml(indent: 2, target: "")
+      if credit_note? && due_date && payment_means.blank?
+        # PaymentDueDate is the only place for BT-9 in a CreditNote, and PaymentMeans requires a PaymentMeansCode.
+        raise ArgumentError, "a credit note with a due_date requires payment_means"
+      end
+
       xml = Builder::XmlMarkup.new(indent: indent, target: target)
       xml.instruct! :xml, version: "1.0", encoding: "UTF-8"
 
-      xml.ubl :Invoice, \
-        "xmlns:ubl"          => "urn:oasis:names:specification:ubl:schema:xsd:Invoice-2",
+      root = credit_note? ? "CreditNote" : "Invoice"
+
+      xml.ubl root.to_sym, \
+        "xmlns:ubl"          => "urn:oasis:names:specification:ubl:schema:xsd:#{root}-2",
         "xmlns:cac"          => "urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2",
         "xmlns:cbc"          => "urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2",
         "xmlns:xsi"          => "http://www.w3.org/2001/XMLSchema-instance",
-        "xsi:schemaLocation" => "urn:oasis:names:specification:ubl:schema:xsd:Invoice-2 http://docs.oasis-open.org/ubl/os-UBL-2.1/xsd/maindoc/UBL-Invoice-2.1.xsd" do
+        "xsi:schemaLocation" => "urn:oasis:names:specification:ubl:schema:xsd:#{root}-2 http://docs.oasis-open.org/ubl/os-UBL-2.1/xsd/maindoc/UBL-#{root}-2.1.xsd" do
         xml.cbc :CustomizationID, "urn:cen.eu:en16931:2017#compliant#urn:xeinkauf.de:kosit:xrechnung_3.0#conformant#urn:xeinkauf.de:kosit:extension:xrechnung_3.0"
         xml.cbc :ProfileID, profile_id
         xml.cbc :ID, id
         xml.cbc :IssueDate, issue_date
-        xml.cbc :DueDate, due_date
-        xml.cbc :InvoiceTypeCode, invoice_type_code
+        if credit_note?
+          # A CreditNote has no DueDate; BT-9 goes into PaymentMeans/PaymentDueDate.
+          # Its TaxPointDate precedes the type code, unlike in an Invoice.
+          xml.cbc :TaxPointDate, tax_point_date if tax_point_date
+          xml.cbc :CreditNoteTypeCode, invoice_type_code
+        else
+          xml.cbc :DueDate, due_date
+          xml.cbc :InvoiceTypeCode, invoice_type_code
+        end
 
         notes.each do |note|
           xml.cbc :Note, note
         end
 
-        xml.cbc :TaxPointDate, tax_point_date if tax_point_date
+        xml.cbc :TaxPointDate, tax_point_date if tax_point_date && !credit_note?
         xml.cbc :DocumentCurrencyCode, document_currency_code
         xml.cbc :TaxCurrencyCode, tax_currency_code if tax_currency_code != document_currency_code
         xml.cbc :BuyerReference, buyer_reference if buyer_reference.present?
@@ -351,8 +373,16 @@ module Xrechnung
         additional_document_reference&.to_xml(xml)
 
         unless project_reference_id.blank?
-          xml.cac :ProjectReference do
-            xml.cbc :ID, project_reference_id
+          if credit_note?
+            # A CreditNote has no ProjectReference; BT-11 is an AdditionalDocumentReference of type 50.
+            xml.cac :AdditionalDocumentReference do
+              xml.cbc :ID, project_reference_id
+              xml.cbc :DocumentTypeCode, 50
+            end
+          else
+            xml.cac :ProjectReference do
+              xml.cbc :ID, project_reference_id
+            end
           end
         end
 
@@ -376,7 +406,7 @@ module Xrechnung
 
         unless payment_means.blank?
           xml.cac :PaymentMeans do
-            payment_means&.to_xml(xml)
+            payment_means&.to_xml(xml, payment_due_date: (due_date if credit_note?))
           end
         end
 
@@ -399,7 +429,7 @@ module Xrechnung
         end
 
         invoice_lines.each do |invoice_line|
-          invoice_line&.to_xml(xml)
+          invoice_line&.to_xml(xml, credit_note: credit_note?)
         end
 
         # !!!
