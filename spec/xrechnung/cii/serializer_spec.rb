@@ -120,6 +120,23 @@ RSpec.describe Xrechnung::Cii::Serializer do
     expect(xml).to include("<ram:DuePayableAmount>1190.00</ram:DuePayableAmount>")
   end
 
+  it "omits InvoiceReferencedDocument when the document has no billing reference" do
+    expect(xml).not_to include("<ram:InvoiceReferencedDocument>")
+  end
+
+  context "with a billing reference (BG-3)" do
+    before do
+      document.invoice_type_code = 381
+      document.billing_reference = Xrechnung::InvoiceDocumentReference.new(id: "RE-2026-0041", issue_date: Date.new(2026, 5, 20))
+    end
+
+    it "serializes the preceding invoice after the monetary summation" do
+      expect(xml).to match(
+        %r{</ram:SpecifiedTradeSettlementHeaderMonetarySummation>\s*<ram:InvoiceReferencedDocument>\s*<ram:IssuerAssignedID>RE-2026-0041</ram:IssuerAssignedID>\s*<ram:FormattedIssueDateTime>\s*<qdt:DateTimeString format="102">20260520</qdt:DateTimeString>}
+      )
+    end
+  end
+
   it "omits TotalPrepaidAmount when the document has no prepaid amount" do
     expect(xml).not_to include("<ram:TotalPrepaidAmount>")
   end

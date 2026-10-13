@@ -205,6 +205,23 @@ module Xrechnung
           end
 
           monetary_summation(xml)
+          invoice_referenced_document(xml)
+        end
+      end
+
+      # BG-3 PRECEDING INVOICE REFERENCE (BT-25, BT-26), e.g. the invoice a credit note
+      # (381) cancels. Must follow the monetary summation in the CII sequence.
+      def invoice_referenced_document(xml)
+        reference = @doc.billing_reference
+        return unless reference
+
+        xml.ram :InvoiceReferencedDocument do
+          xml.ram :IssuerAssignedID, reference.id
+          if reference.issue_date
+            xml.ram :FormattedIssueDateTime do
+              xml.qdt :DateTimeString, reference.issue_date.strftime("%Y%m%d"), format: "102"
+            end
+          end
         end
       end
 
