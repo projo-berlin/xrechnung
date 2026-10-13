@@ -83,6 +83,17 @@ RSpec.describe Xrechnung::Document do
       expect(xml).to match(%r{<cac:AdditionalDocumentReference>\s*<cbc:ID>P-2026-01</cbc:ID>\s*<cbc:DocumentTypeCode>50</cbc:DocumentTypeCode>})
     end
 
+    it "places the TaxPointDate before the CreditNoteTypeCode, as the CreditNote schema orders them" do
+      document.tax_point_date = Date.new(2026, 6, 18)
+      expect(xml).to match(%r{<cbc:IssueDate>2026-06-20</cbc:IssueDate>\s*<cbc:TaxPointDate>2026-06-18</cbc:TaxPointDate>\s*<cbc:CreditNoteTypeCode>})
+      expect(xml.scan("<cbc:TaxPointDate>").size).to eq(1)
+    end
+
+    it "rejects a due date without payment means, as BT-9 could not be serialized" do
+      document.payment_means = nil
+      expect { xml }.to raise_error(ArgumentError, /due_date requires payment_means/)
+    end
+
     it "serializes the lines as CreditNoteLine with a CreditedQuantity" do
       expect(xml).to match(%r{<cac:CreditNoteLine>\s*<cbc:ID>1</cbc:ID>\s*<cbc:CreditedQuantity unitCode="C62">1.00</cbc:CreditedQuantity>})
       expect(xml).not_to include("InvoiceLine")
@@ -99,6 +110,11 @@ RSpec.describe Xrechnung::Document do
       expect(xml).to match(%r{<cac:ProjectReference>\s*<cbc:ID>P-2026-01</cbc:ID>})
       expect(xml).to match(%r{<cac:InvoiceLine>\s*<cbc:ID>1</cbc:ID>\s*<cbc:InvoicedQuantity unitCode="C62">1.00</cbc:InvoicedQuantity>})
       expect(xml).not_to include("PaymentDueDate")
+    end
+
+    it "keeps the TaxPointDate after the notes" do
+      document.tax_point_date = Date.new(2026, 6, 18)
+      expect(xml).to match(%r{<cbc:InvoiceTypeCode>380</cbc:InvoiceTypeCode>\s*<cbc:TaxPointDate>2026-06-18</cbc:TaxPointDate>})
     end
   end
 end

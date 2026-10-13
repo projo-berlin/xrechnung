@@ -297,6 +297,11 @@ module Xrechnung
     end
 
     def to_xml(indent: 2, target: "")
+      if credit_note? && due_date && payment_means.blank?
+        # PaymentDueDate is the only place for BT-9 in a CreditNote, and PaymentMeans requires a PaymentMeansCode.
+        raise ArgumentError, "a credit note with a due_date requires payment_means"
+      end
+
       xml = Builder::XmlMarkup.new(indent: indent, target: target)
       xml.instruct! :xml, version: "1.0", encoding: "UTF-8"
 
@@ -314,6 +319,8 @@ module Xrechnung
         xml.cbc :IssueDate, issue_date
         if credit_note?
           # A CreditNote has no DueDate; BT-9 goes into PaymentMeans/PaymentDueDate.
+          # Its TaxPointDate precedes the type code, unlike in an Invoice.
+          xml.cbc :TaxPointDate, tax_point_date if tax_point_date
           xml.cbc :CreditNoteTypeCode, invoice_type_code
         else
           xml.cbc :DueDate, due_date
@@ -324,7 +331,7 @@ module Xrechnung
           xml.cbc :Note, note
         end
 
-        xml.cbc :TaxPointDate, tax_point_date if tax_point_date
+        xml.cbc :TaxPointDate, tax_point_date if tax_point_date && !credit_note?
         xml.cbc :DocumentCurrencyCode, document_currency_code
         xml.cbc :TaxCurrencyCode, tax_currency_code if tax_currency_code != document_currency_code
         xml.cbc :BuyerReference, buyer_reference if buyer_reference.present?
