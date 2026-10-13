@@ -73,6 +73,10 @@ RSpec.describe Xrechnung::Document do
       expect(xml).not_to include("InvoiceTypeCode")
     end
 
+    it "states the plain XRechnung specification (BT-24), as KoSIT has no Extension scenario for a CreditNote" do
+      expect(xml).to include("<cbc:CustomizationID>urn:cen.eu:en16931:2017#compliant#urn:xeinkauf.de:kosit:xrechnung_3.0</cbc:CustomizationID>")
+    end
+
     it "moves the due date (BT-9) into PaymentMeans" do
       expect(xml).not_to include("<cbc:DueDate>")
       expect(xml).to match(%r{<cbc:PaymentMeansCode>58</cbc:PaymentMeansCode>\s*<cbc:PaymentDueDate>2026-07-20</cbc:PaymentDueDate>})
@@ -107,6 +111,7 @@ RSpec.describe Xrechnung::Document do
       expect(xml).to include('<ubl:Invoice xmlns:ubl="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"')
       expect(xml).to include("<cbc:DueDate>2026-07-20</cbc:DueDate>")
       expect(xml).to include("<cbc:InvoiceTypeCode>380</cbc:InvoiceTypeCode>")
+      expect(xml).to include("xrechnung_3.0#conformant#urn:xeinkauf.de:kosit:extension:xrechnung_3.0</cbc:CustomizationID>")
       expect(xml).to match(%r{<cac:ProjectReference>\s*<cbc:ID>P-2026-01</cbc:ID>})
       expect(xml).to match(%r{<cac:InvoiceLine>\s*<cbc:ID>1</cbc:ID>\s*<cbc:InvoicedQuantity unitCode="C62">1.00</cbc:InvoicedQuantity>})
       expect(xml).not_to include("PaymentDueDate")
