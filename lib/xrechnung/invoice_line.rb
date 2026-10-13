@@ -28,10 +28,11 @@ module Xrechnung
     end
 
     # noinspection RubyResolve
-    def to_xml(xml)
-      xml.cac :InvoiceLine do
+    def to_xml(xml, credit_note: false)
+      line, quantity = credit_note ? %i[CreditNoteLine CreditedQuantity] : %i[InvoiceLine InvoicedQuantity]
+      xml.cac line do
         xml.cbc :ID, id
-        xml.cbc :InvoicedQuantity, invoiced_quantity.amount_to_s, unitCode: invoiced_quantity.unit_code
+        xml.cbc quantity, invoiced_quantity.amount_to_s, unitCode: invoiced_quantity.unit_code
         xml.cbc :LineExtensionAmount, *line_extension_amount.xml_args
         item&.to_xml(xml)
         price&.to_xml(xml)

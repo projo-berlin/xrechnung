@@ -33,9 +33,11 @@ module Xrechnung
     member :payee_financial_account, type: Xrechnung::PayeeFinancialAccount
 
     # noinspection RubyResolve
-    def to_xml(xml)
+    # @param payment_due_date [Date] BT-9 of a credit note, which has no DueDate of its own
+    def to_xml(xml, payment_due_date: nil)
       code_options = payment_means_name.present? ? { name: payment_means_name } : {}
       xml.cbc :PaymentMeansCode, payment_means_code, code_options
+      xml.cbc :PaymentDueDate, payment_due_date if payment_due_date
       xml.cbc :InstructionNote, instruction_note if instruction_note
       xml.cbc :PaymentID, payment_id if payment_id
       payee_financial_account&.to_xml(xml)
