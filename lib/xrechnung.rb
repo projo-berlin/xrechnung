@@ -101,6 +101,11 @@ module Xrechnung
     # The UNTDID 1001 codes BR-CL-01 only accepts in a UBL CreditNote, not in a UBL Invoice.
     CREDIT_NOTE_TYPE_CODES = [81, 83, 261, 262, 296, 308, 381, 396, 420, 458, 532].freeze
 
+    # BT-24 Specification identifier. The KoSIT validator has no XRechnung Extension scenario for a
+    # UBL CreditNote, so a credit note states the plain XRechnung specification instead.
+    CUSTOMIZATION_ID           = "urn:cen.eu:en16931:2017#compliant#urn:xeinkauf.de:kosit:xrechnung_3.0"
+    EXTENSION_CUSTOMIZATION_ID = "#{CUSTOMIZATION_ID}#conformant#urn:xeinkauf.de:kosit:extension:xrechnung_3.0"
+
     # Invoice currency code BT-5
     #
     # Die Währung, in der alle Rechnungsbeträge angegeben werden, ausgenommen ist der Umsatzsteuer-
@@ -313,7 +318,7 @@ module Xrechnung
         "xmlns:cbc"          => "urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2",
         "xmlns:xsi"          => "http://www.w3.org/2001/XMLSchema-instance",
         "xsi:schemaLocation" => "urn:oasis:names:specification:ubl:schema:xsd:#{root}-2 http://docs.oasis-open.org/ubl/os-UBL-2.1/xsd/maindoc/UBL-#{root}-2.1.xsd" do
-        xml.cbc :CustomizationID, "urn:cen.eu:en16931:2017#compliant#urn:xeinkauf.de:kosit:xrechnung_3.0#conformant#urn:xeinkauf.de:kosit:extension:xrechnung_3.0"
+        xml.cbc :CustomizationID, credit_note? ? CUSTOMIZATION_ID : EXTENSION_CUSTOMIZATION_ID
         xml.cbc :ProfileID, profile_id
         xml.cbc :ID, id
         xml.cbc :IssueDate, issue_date
