@@ -249,8 +249,12 @@ module Xrechnung
         xml.ram :ApplicableTradeTax do
           xml.ram :CalculatedAmount, subtotal.tax_amount.value_to_s
           xml.ram :TypeCode, "VAT"
+          # BT-120 / BT-121. The CII sequence puts the text before BasisAmount and the
+          # code after CategoryCode.
+          xml.ram :ExemptionReason, category.tax_exemption_reason unless category&.tax_exemption_reason.to_s.empty?
           xml.ram :BasisAmount, subtotal.taxable_amount.value_to_s
           xml.ram :CategoryCode, category&.id
+          xml.ram :ExemptionReasonCode, category.tax_exemption_reason_code unless category&.tax_exemption_reason_code.to_s.empty?
           xml.ram :RateApplicablePercent, format("%.2f", category.percent) if category
         end
       end

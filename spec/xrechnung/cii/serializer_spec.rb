@@ -120,6 +120,27 @@ RSpec.describe Xrechnung::Cii::Serializer do
     expect(xml).to include("<ram:DuePayableAmount>1190.00</ram:DuePayableAmount>")
   end
 
+  it "omits the exemption reason (BT-120, BT-121) for a standard-rated category" do
+    expect(xml).not_to include("ExemptionReason")
+  end
+
+  context "with a reverse-charge VAT breakdown (category AE)" do
+    before do
+      document.tax_total.tax_subtotals.first.tax_category = Xrechnung::TaxCategory.new(
+        id: "AE", percent: 0, tax_exemption_reason_code: "VATEX-EU-AE", tax_exemption_reason: "Reverse charge"
+      )
+    end
+
+    it "serializes the reason and its code where the CII sequence expects them, as BR-AE-10 demands one" do
+      expect(xml).to match(
+        %r{<ram:TypeCode>VAT</ram:TypeCode>\s*<ram:ExemptionReason>Reverse charge</ram:ExemptionReason>\s*<ram:BasisAmount>}
+      )
+      expect(xml).to match(
+        %r{<ram:CategoryCode>AE</ram:CategoryCode>\s*<ram:ExemptionReasonCode>VATEX-EU-AE</ram:ExemptionReasonCode>\s*<ram:RateApplicablePercent>0.00<}
+      )
+    end
+  end
+
   it "omits InvoiceReferencedDocument when the document has no billing reference" do
     expect(xml).not_to include("<ram:InvoiceReferencedDocument>")
   end
