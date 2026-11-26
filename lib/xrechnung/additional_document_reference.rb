@@ -18,7 +18,11 @@ module Xrechnung
       xml.cac :AdditionalDocumentReference do
         xml.cbc :ID, id
         xml.cac :Attachment do
-          xml.cbc :EmbeddedDocumentBinaryObject, base64_blob, mimeCode: "application/pdf", filename: id
+          # Written by hand, as Builder escapes text with one regex over all of it, which outlasts
+          # Rails' 1s Regexp.timeout for a PDF of about 100 MB. Base64 needs no escaping.
+          xml << %(<cbc:EmbeddedDocumentBinaryObject mimeCode="application/pdf" filename=#{id.to_s.encode(xml: :attr)}>)
+          xml << base64_blob
+          xml << "</cbc:EmbeddedDocumentBinaryObject>\n"
         end
       end
     end
